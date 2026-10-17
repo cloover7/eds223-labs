@@ -1,0 +1,93 @@
+# Week 3 Discussion
+
+## load in packages
+```{r}
+library(here)
+library(tidyverse)
+library(sf)
+library(tmap)
+```
+
+## load in data
+```{r}
+sb_protected_areas <- st_read(here('week3', "data", "cpad_super_units_sb.shp")) |>  
+  st_transform("ESRI:102009")
+
+sb_city_boundaries <- st_read(here('week3', "data", "sb_city_boundaries_2003.shp")) |> 
+  st_transform("ESRI:102009")
+
+sb_county_boundary <- st_read(here('week3', "data", "sb_county_boundary_2020.shp")) |> 
+  st_transform("ESRI:102009")
+
+aves <- st_read(here('week3', "data", "aves_observations_2020_2024.shp")) |> 
+  st_transform("ESRI:102009")
+```
+
+## 2. bird observations within PAs in Santa Barbara County
+
+```{r}
+pa_birds <- sb_protected_areas[aves, ]
+nrow(pa_birds)
+```
+
+```{r}
+tm_shape(sb_county_boundary) +
+  tm_fill() +
+tm_shape(sb_protected_areas) +
+  tm_polygons(fill = '#afeeee', alpha = 0.6) +
+tm_shape(pa_birds) +
+  tm_dots()
+```
+
+make 5 km buffer around protected area
+```{r}
+pa_buffer <- st_buffer(sb_protected_areas, dist = 5000)
+pa_buffer_birds <- st_join(pa_buffer, aves, left = FALSE)
+```
+
+```{r}
+tm_shape(sb_county_boundary) +
+  tm_fill() +
+tm_shape(sb_protected_areas) +
+  tm_polygons(fill = '#afeeee', fill_alpha = 0.6) +
+tm_shape(pa_buffer_birds) +
+  tm_dots(fill = 'lavender', fill_alpha = 0.2)
+ 
+```
+
+# find PAs within 15 km of Goleta
+```{r}
+goleta <- sb_city_boundaries |> 
+  filter(NAME == 'Goleta')
+
+st_crs(goleta)$units
+
+```
+
+```{r}
+goleta_buffer_15 <- st_buffer(goleta, dist = 15000)
+```
+
+```{r}
+goleta_intersection <- st_intersection(sb_protected_areas, goleta_buffer_15)
+```
+
+
+```{r}
+tm_shape(sb_county_boundary) +
+  tm_fill() +
+tm_shape(goleta_intersection) +
+  tm_polygons(fill = '#afeeee', fill_alpha = 0.6) 
+```
+
+```{r}
+dangermond <- sb_protected_areas |> 
+  filter(UNIT_NAME == "Jack and Laura Dangermond Preserve")
+
+dist <- st_distance(goleta, dangermond)
+
+dangermond_centroid <- st_centroid(dangermond)
+goleta_centroid <- st_centroid(goleta)
+
+dist_centroid <- st_distance(goleta_centroid, dangermond_centroid)
+```
