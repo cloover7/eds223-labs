@@ -1,6 +1,7 @@
 ---
 title: "Raster Review: Climate Analysis in California"
 subtitle: "EDS 223: Geospatial Analysis & Remote Sensing"
+author: Erin Yang
 date: last-modified
 execute:
   eval: true
@@ -11,8 +12,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-
-::: {.callout-note icon=true}
+::: {.callout-note icon="true"}
 # Overview
 
 California spans the full spectrum of western North American climates from the foggy Pacific Coast, the Central Valley, the Sierra Nevada, and the Mojave Desert, making it an excellent case study for climate analysis with raster data.
@@ -27,12 +27,13 @@ In this review, each map algebra operation is motivated by a concrete question t
 **Data:** Annual mean temperature and annual total precipitation from [PRISM Climate Group](https://prism.oregonstate.edu/) at Oregon State University. PRISM data must be downloaded manually through the project's portal.
 :::
 
-***
+------------------------------------------------------------------------
+
 # Pre Lab Prep
 
 ## Data Download
 
-::: {.callout-important icon=true}
+::: {.callout-important icon="true"}
 ### Download data
 
 All data comes from the **PRISM Climate Group** portal. You will download three files total.
@@ -40,17 +41,16 @@ All data comes from the **PRISM Climate Group** portal. You will download three 
 
 ### Step 1 — Navigate to the PRISM Normals page
 
-Go to **[prism.oregonstate.edu](https://prism.oregonstate.edu/)**, click **Data Grids**, then select **1991-2020 Normals**.
+Go to [**prism.oregonstate.edu**](https://prism.oregonstate.edu/), click **Data Grids**, then select **1991-2020 Normals**.
 
 ### Step 2 — Download annual mean temperature (4 km)
 
 On the Normals page:
 
-1. Set ** Spatial Resolution** to *4km*
-2. Set **Variable** to *Mean Temperature (tmean)*
-3. Set **Time Step** to *Annual*
-4. Download the `.zip` file, unzip it, and save it to your `data` directory for your labs repo. 
-
+1.  Set \*\* Spatial Resolution\*\* to *4km*
+2.  Set **Variable** to *Mean Temperature (tmean)*
+3.  Set **Time Step** to *Annual*
+4.  Download the `.zip` file, unzip it, and save it to your `data` directory for your labs repo.
 
 ### Step 3 — Download annual total precipitation (4 km)
 
@@ -64,37 +64,36 @@ Repeat Step 3 but change **Resolution** to *800m*:
 
 Unzip into `data/` as well. This higher-resolution file is used only in the [Resolution Matching](#resolution-matching) section.
 
----
+------------------------------------------------------------------------
 
 ## Metadata Review
 
-::: {.callout-important icon=true}
+::: {.callout-important icon="true"}
 ### Complete this section before writing any code
 
-Every PRISM ZIP archive includes a `.xml` file alongside the `.tif` raster. This XML contains the dataset's metadata. Open the metadata for the three different datasets you downloaded and use it to answer the questions below. Store your answers in the table below. 
+Every PRISM ZIP archive includes a `.xml` file alongside the `.tif` raster. This XML contains the dataset's metadata. Open the metadata for the three different datasets you downloaded and use it to answer the questions below. Store your answers in the table below.
 
 **Find and record each of the following. Fill in your answers in the summary table below:**
 
-1. **Spatial resolution** — What are the cell dimensions in degrees?
+1.  **Spatial resolution** — What are the cell dimensions in degrees?
 
-2. **Coordinate reference system** — What geographic coordinate system and datum are used?
+2.  **Coordinate reference system** — What geographic coordinate system and datum are used?
 
-3. **Units for temperature** — What units are temperature values reported in?
+3.  **Units for temperature** — What units are temperature values reported in?
 
-4. **Units for precipitation** — What units are precipitation values reported in?
+4.  **Units for precipitation** — What units are precipitation values reported in?
 
-5. **Temporal coverage** — What 30-year period do the normals represent?
+5.  **Temporal coverage** — What 30-year period do the normals represent?
 
-
-| Property | PRISM 4 km (tmean) | PRISM 4 km (ppt) | PRISM 800 m (ppt) |
-|---|---|---|---|
-| Spatial Resolution | | | |
-| Temporal coverage | | | |
-| CRS | | | |
-| Units | | | |
+| Property           | PRISM 4 km (tmean) | PRISM 4 km (ppt) | PRISM 800 m (ppt) |
+|--------------------|--------------------|------------------|-------------------|
+| Spatial Resolution |                    |                  |                   |
+| Temporal coverage  |                    |                  |                   |
+| CRS                |                    |                  |                   |
+| Units              |                    |                  |                   |
 :::
 
----
+------------------------------------------------------------------------
 
 # Setup
 
@@ -108,14 +107,11 @@ library(tmap)
 library(kableExtra)
 ```
 
----
+------------------------------------------------------------------------
 
 # Load and Inspect Data
 
 `rast()` reads GeoTIFF files directly. Each file contains a single layer.
-
-
-
 
 ```{r}
 annual_temp  <- rast("data/prism_tmean_us_25m_2020_avg_30y/prism_tmean_us_25m_2020_avg_30y.tif")
@@ -124,6 +120,7 @@ annual_prec  <- rast("data/prism_ppt_us_25m_2020_avg_30y/prism_ppt_us_25m_2020_a
 
 prec_800m    <- rast("data/prism_ppt_us_30s_2020_avg_30y/prism_ppt_us_30s_2020_avg_30y.tif")
 ```
+
 Before doing any analysis, inspect what you loaded:
 
 ```{r}
@@ -151,12 +148,10 @@ PRISM normals cover the entire contiguous United States. We crop all three raste
 
 **How can you determine the coordinates for a bounding box? A few reliable options:**
 
-- **[bboxfinder.com](http://bboxfinder.com)** — draw a rectangle on a map and copy the coordinates directly
-- **[boundingbox.klokantech.com](https://boundingbox.klokantech.com/)** — search by place name, adjust the box, and export in several formats including decimal degrees (CSV Raw Option)
+- [**bboxfinder.com**](http://bboxfinder.com) — draw a rectangle on a map and copy the coordinates directly
+- [**boundingbox.klokantech.com**](https://boundingbox.klokantech.com/) — search by place name, adjust the box, and export in several formats including decimal degrees (CSV Raw Option)
 - **Google Maps** — right-click any point to copy its latitude/longitude
 - **Other data you are using** — if you already have a spatial object covering your area of interest, `ext()` returns its bounding box
-
-
 
 ```{r}
 ca_ext <- ext(-124.4820030034, -114.13078174, 32.5295238201, 42.0094992115)
@@ -166,7 +161,7 @@ annual_prec_ca <- crop(annual_prec, ca_ext)
 prec_800m_ca   <- crop(prec_800m,   ca_ext)
 ```
 
-Did changing the extent change our resolution at all? Let's check: 
+Did changing the extent change our resolution at all? Let's check:
 
 ```{r}
 #| results: hold
@@ -182,7 +177,7 @@ cat("CA Precip High Resolution:", res(prec_800m_ca), "\n")
 
 ```
 
-Nope! Changing the extent of our raster **does not** change the resolution. What does it change? 
+Nope! Changing the extent of our raster **does not** change the resolution. What does it change?
 
 ```{r}
 #| results: hold
@@ -218,7 +213,7 @@ map2 <- tm_shape(annual_prec_ca) +
 tmap_arrange(map1, map2, nrow = 1)
 ```
 
----
+------------------------------------------------------------------------
 
 # Map Algebra
 
@@ -264,12 +259,12 @@ The aridity index is a continuous surface. `classify()` bins it into discrete ca
 The cut points below follow the de Martonne (1926) classification scheme:
 
 | Aridity Index | Climate Zone |
-|---|---|
-| < 5 | Hyperarid |
-| 5 – 15 | Arid |
-| 15 – 25 | Semi-arid |
-| 25 – 55 | Sub-humid |
-| > 55 | Humid |
+|---------------|--------------|
+| \< 5          | Hyperarid    |
+| 5 – 15        | Arid         |
+| 15 – 25       | Semi-arid    |
+| 25 – 55       | Sub-humid    |
+| \> 55         | Humid        |
 
 ```{r}
 rcl <- matrix(c(
@@ -302,8 +297,7 @@ map2 <- tm_shape(climate_zones) +
 tmap_arrange(map1, map2, nrow = 1)
 ```
 
-
----
+------------------------------------------------------------------------
 
 ## Focal Operations
 
@@ -312,7 +306,6 @@ Focal operations compute a new value for each cell based on the values in a surr
 **Question:** Where is precipitation most spatially variable?
 
 A focal standard deviation answers this directly: for each cell, `focal()` computes the standard deviation of precipitation across all cells in the surrounding 7 × 7 neighborhood. High values indicate that nearby cells span a wide range of precipitation totals; low values indicate a spatially uniform neighborhood.
-
 
 ```{r}
 prec_sd <- focal(
@@ -344,8 +337,7 @@ map2 <- tm_shape(prec_sd) +
 tmap_arrange(map1, map2, nrow = 1)
 ```
 
-
----
+------------------------------------------------------------------------
 
 ## Zonal Operations
 
@@ -372,13 +364,11 @@ bind_cols(temp_by_zone, prec_by_zone[, 2]) |>
   kable_styling(bootstrap_options = "striped")
 ```
 
+------------------------------------------------------------------------
 
----
-
-# Resolution Matching
+# Resolution Matching {#resolution-matching}
 
 PRISM distributes the same climate product at two resolutions: **4 km** and **800 m**. Even though they represent the same variable from the same source, the two grids cannot be used together in map algebra until they are aligned.
-
 
 ## Comparing raster properties
 
@@ -397,8 +387,7 @@ cat("4 km origin: ",  origin(annual_prec_ca), "\n")
 cat("800 m origin: ", origin(prec_800m_ca),   "\n")
 ```
 
-Despite sharing the same CRS, the two rasters differ in resolution and origin. 
-
+Despite sharing the same CRS, the two rasters differ in resolution and origin.
 
 The grids are misaligned. Cell corners fall at different coordinates and cells are different sizes. **Map algebra between these two rasters will fail or produce incorrect results.**
 
@@ -424,7 +413,6 @@ map2 <- tm_shape(prec_800m_ca) +
 
 tmap_arrange(map1, map2, nrow = 1)
 ```
-
 
 ## Aligning with `resample()`
 
@@ -456,10 +444,10 @@ tm_shape(prec_diff) +
   tm_title("4 km minus 800 m (resampled)\nAnnual Precipitation")
 ```
 
-:::{.callout-warning icon=true}
+::: {.callout-warning icon="true"}
 # Does resampling to a coarser grid recover fine-scale detail?
 
 No. Downsampling from 800 m to 4 km permanently discards fine-scale spatial structure. Each resampled cell is a bilinear interpolation of nearby fine-resolution cells. Features like narrow ridges and canyon floors that are resolved at 800 m are smoothed away at 4 km.
 :::
 
----
+------------------------------------------------------------------------
